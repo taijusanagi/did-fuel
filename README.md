@@ -19,8 +19,8 @@ The product design is based on the ERC-1056: Ethereum Lightweight Identity. It a
 To get started, clone the repo and run `npm install`.
 
 ```bash
-git clone https://github.com/your-repo-url
-cd your-repo-name
+git clone https://github.com/taijusanagi/sway-summer-hackathon-2022
+cd sway-summer-hackathon-2022
 npm install
 npm start
 ```
