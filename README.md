@@ -1,6 +1,8 @@
-# Fuel:DID
+# DID:Fuel
 
-Fuel:DID is a product created for the Sway Summer Hackathon. Our goal is to establish an identity infrastructure for Fuel, offering an SDK that makes it easy to create and manage Decentralized Identifiers (DIDs) on Fuel, and includes a simple frontend demo showcasing the SDK functionality.
+![banner](./assets/banner.png)
+
+DID:Fuel is a product created for the Sway Summer Hackathon. Our goal is to establish an identity infrastructure for Fuel, offering an SDK that makes it easy to create and manage Decentralized Identifiers (DIDs) on Fuel, and includes a simple frontend demo showcasing the SDK functionality.
 
 ## Features
 
