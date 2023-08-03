@@ -53,12 +53,13 @@ const Home: React.FC = () => {
   };
 
   return (
-    <main className={`flex min-h-screen flex-col items-center p-24 mx-auto max-w-4xl ${inter.className}`}>
-      <div className="mb-12 text-center text-5xl font-bold min-w-full">DID:Fuel</div>
+    <main className={`flex min-h-screen flex-col items-center p-12 mx-auto max-w-4xl ${inter.className}`}>
+      <img src="/banner.png" className="rounded-lg mb-4 w-80"></img>
+      <div className="mb-8 text-center text-lg font-bold min-w-full">Fuel based DID management SDK</div>
       <div className="p-4 max-w-4xl min-w-full bg-white rounded-lg">
         <h1 className="mb-4 text-lg font-bold min-w-full text-black">{did}</h1>
         <h2 className="mb-2 text-sm font-bold text-black">DID Document:</h2>
-        <pre className="mb-4 border rounded p-4 overflow-x-scroll min-w-full bg-gray-100 shadow-inner">
+        <pre className="mb-4 border rounded p-4 overflow-x-scroll min-w-full bg-gray-100 shadow-inner text-xs">
           {JSON.stringify(didDocument, null, 2)}
         </pre>
         <h2 className="mb-2 text-sm font-bold text-black">Management</h2>
