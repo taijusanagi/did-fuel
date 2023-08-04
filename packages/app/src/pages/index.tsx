@@ -4,6 +4,10 @@ import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
 import { useFuel } from "@/hooks/useFuel";
 import { useIsConnected } from "@/hooks/useIsConnected";
+import { Wallet } from "fuels";
+
+import { GameAbi__factory } from "@/types/generated/fuel";
+const CONTRACT_ID = "0xe0767304c2b083731066c883df00b6253d35365fe298f0b43ae1ea5a34eaa794";
 
 interface VerificationMethod {
   id: string;
@@ -14,7 +18,6 @@ interface VerificationMethod {
 const Home: React.FC = () => {
   const [fuel, notDetected, isLoading] = useFuel();
   const [isConnected] = useIsConnected();
-
   const [did, setDid] = useState<string>("did:fuel:xxx");
   const [verificationMethods, setVerificationMethods] = useState<VerificationMethod[]>([
     {
@@ -47,6 +50,7 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     // TODO: add registered keys
+
     setVerificationMethods([
       {
         id: `${did}`,
@@ -69,14 +73,47 @@ const Home: React.FC = () => {
   const handleAddKey = () => {
     // TODO: send transaction
 
-    const newKey: VerificationMethod = {
-      id: `did:fuel:${newKeyInput}`,
-      type: "EcdsaSecp256k1RecoveryMethod2020",
-      controller: did,
-    };
-    setVerificationMethods([...verificationMethods, newKey]);
-    setNewKeyInput("");
+    try {
+      const wallet = Wallet.fromAddress(newKeyInput);
+      const newAddress = wallet.address.toString();
+      const newDID = `did:fuel:${newAddress}`;
+      if (verificationMethods.some((method) => method.id === newDID)) {
+        alert("This address is already registered.");
+        return;
+      }
+      const newKey: VerificationMethod = {
+        id: `did:fuel:${newKeyInput}`,
+        type: "EcdsaSecp256k1RecoveryMethod2020",
+        controller: did,
+      };
+      setVerificationMethods([...verificationMethods, newKey]);
+      setNewKeyInput("");
+    } catch (e) {
+      alert(e);
+    }
   };
+
+  async function newPlayer() {
+    const account = await fuel.currentAccount();
+    const wallet = await fuel.getWallet(account);
+    const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
+    let resp = await contract.functions.new_player().txParams({ variableOutputs: 1 }).call();
+    console.log("RESPONSE:", resp.value);
+  }
+
+  async function levelUp() {
+    const account = await fuel.currentAccount();
+    const wallet = await fuel.getWallet(account);
+    const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
+    let amount = 100_000_000;
+    let resp = await contract.functions
+      .level_up()
+      .callParams({
+        forward: [amount, CONTRACT_ID],
+      })
+      .call();
+    console.log("RESPONSE:", resp.value.toNumber());
+  }
 
   const handleRevokeKey = (id: string) => {
     const newVerificationMethods = verificationMethods.filter((method) => method.id !== id);
@@ -126,10 +163,22 @@ const Home: React.FC = () => {
                     <h2 className="mb-2 text-sm font-bold text-black">Management</h2>
                     <input
                       className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
-                      placeholder="Fuel account"
+                      placeholder="Fuel account (bech32Address)"
                       value={newKeyInput}
                       onChange={(e) => setNewKeyInput(e.target.value)}
                     />
+                    <button
+                      className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
+                      onClick={newPlayer}
+                    >
+                      newPlayer
+                    </button>
+                    <button
+                      className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
+                      onClick={levelUp}
+                    >
+                      levelUp
+                    </button>
                     <button
                       className="px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleAddKey}

@@ -13,7 +13,10 @@
     "build": "run-p build:*",
     "build:app": "yarn workspace @didfuel/app build",
     "lint": "run-p lint:*",
-    "lint:app": "yarn workspace @didfuel/app lint"
+    "lint:app": "yarn workspace @didfuel/app lint",
+    "run-local-fuel": "fuel-core run --db-type in-memory --chain ./chainConfig.json",
+    "deploy-to-local-fuel": "cd packages/contract && forc deploy --unsigned",
+    "typegen-from-contract-to-app": "npx fuels typegen -i ./packages/contract/out/debug/game-abi.json -o ./packages/app/src/types/generated/fuel"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.2.0",
