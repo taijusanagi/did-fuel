@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
+import { useFuel } from "@/hooks/useFuel";
+import { useIsConnected } from "@/hooks/useIsConnected";
 
 interface VerificationMethod {
   id: string;
@@ -10,6 +12,9 @@ interface VerificationMethod {
 }
 
 const Home: React.FC = () => {
+  const [fuel, notDetected, isLoading] = useFuel();
+  const [isConnected] = useIsConnected();
+
   const [did, setDid] = useState<string>("did:fuel:xxx");
   const [verificationMethods, setVerificationMethods] = useState<VerificationMethod[]>([
     {
@@ -28,6 +33,30 @@ const Home: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!isConnected) {
+      return;
+    }
+    fuel.currentAccount().then((account: any) => {
+      if (!account) {
+        return;
+      }
+      setDid(`did:fuel:${account}`);
+      console.log(account);
+    });
+  }, [isConnected, fuel]);
+
+  useEffect(() => {
+    // TODO: add registered keys
+    setVerificationMethods([
+      {
+        id: `${did}`,
+        type: "EcdsaSecp256k1RecoveryMethod2020",
+        controller: did,
+      },
+    ]);
+  }, [did]);
+
+  useEffect(() => {
     setDidDocument({
       ...didDocument,
       id: did,
@@ -38,6 +67,8 @@ const Home: React.FC = () => {
   }, [did, verificationMethods]);
 
   const handleAddKey = () => {
+    // TODO: send transaction
+
     const newKey: VerificationMethod = {
       id: `did:fuel:${newKeyInput}`,
       type: "EcdsaSecp256k1RecoveryMethod2020",
@@ -56,41 +87,80 @@ const Home: React.FC = () => {
     <main className={`flex min-h-screen flex-col items-center p-12 mx-auto max-w-4xl ${inter.className}`}>
       <img src="/banner.png" className="rounded-lg mb-4 w-80"></img>
       <div className="mb-8 text-center text-lg font-bold min-w-full">Fuel based DID management SDK</div>
-      <div className="p-4 max-w-4xl min-w-full bg-white rounded-lg">
-        <h1 className="mb-4 text-lg font-bold min-w-full text-black">{did}</h1>
-        <h2 className="mb-2 text-sm font-bold text-black">DID Document:</h2>
-        <pre className="mb-4 border rounded p-4 overflow-x-scroll min-w-full bg-gray-100 shadow-inner text-xs">
-          {JSON.stringify(didDocument, null, 2)}
-        </pre>
-        <h2 className="mb-2 text-sm font-bold text-black">Management</h2>
-        <input
-          className="mb-4 px-2 py-2 rounded-lg min-w-full border border-gray-300"
-          placeholder="Fuel account"
-          value={newKeyInput}
-          onChange={(e) => setNewKeyInput(e.target.value)}
-        />
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={handleAddKey}
-          disabled={!newKeyInput}
-        >
-          Delegate
-        </button>
-        <ul className="mt-4 min-w-full">
-          {verificationMethods.map(({ id }) => (
-            <li className="flex justify-between items-center p-2 my-2 min-w-full bg-white rounded-lg" key={id}>
-              <span className="text-black">{id}</span>
-              <button
-                className="px-2 py-1 bg-red-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                onClick={() => handleRevokeKey(id)}
-                disabled={did === id}
-              >
-                Revoke
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {isLoading && (
+        <>
+          <p>Loading Fuel Wallet...</p>
+        </>
+      )}
+      {!isLoading && (
+        <>
+          {notDetected && (
+            <>
+              <p>Please install the Fuel Wallet.</p>
+            </>
+          )}
+          {!notDetected && (
+            <>
+              <div className="py-4 px-6 max-w-4xl min-w-full bg-white rounded-lg">
+                {!isConnected && (
+                  <>
+                    <h1 className="mb-4 text-lg font-bold min-w-full text-black">Connect Fuel Wallet</h1>
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full"
+                      onClick={() => {
+                        fuel.connect();
+                      }}
+                    >
+                      Connect
+                    </button>
+                  </>
+                )}
+                {isConnected && (
+                  <>
+                    <h1 className="mb-2 font-bold min-w-full text-black">DID</h1>
+                    <p className="mb-4 text-sm min-w-full text-black">{did}</p>
+                    <h2 className="mb-2 text-sm font-bold text-black">DID Document:</h2>
+                    <pre className="mb-4 border rounded p-4 overflow-x-scroll min-w-full bg-gray-100 shadow-inner text-xs">
+                      {JSON.stringify(didDocument, null, 2)}
+                    </pre>
+                    <h2 className="mb-2 text-sm font-bold text-black">Management</h2>
+                    <input
+                      className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
+                      placeholder="Fuel account"
+                      value={newKeyInput}
+                      onChange={(e) => setNewKeyInput(e.target.value)}
+                    />
+                    <button
+                      className="px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={handleAddKey}
+                      disabled={!newKeyInput}
+                    >
+                      Delegate
+                    </button>
+                    <ul className="mt-4 min-w-full">
+                      {verificationMethods.map(({ id }) => (
+                        <li
+                          className="flex justify-between items-center p-2 my-2 min-w-full bg-white rounded-lg"
+                          key={id}
+                        >
+                          <span className="text-sm text-black">{id}</span>
+                          <button
+                            className="px-2 py-1 bg-red-500 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => handleRevokeKey(id)}
+                            disabled={did === id}
+                          >
+                            Revoke
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+            </>
+          )}
+        </>
+      )}
     </main>
   );
 };
