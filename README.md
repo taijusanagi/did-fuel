@@ -14,13 +14,15 @@ DID:Fuel is a product created for the Sway Summer Hackathon. Our goal is to esta
 
 The product design is based on the ERC-1056: Ethereum Lightweight Identity. It aims to provide a lightweight and flexible solution to identity management.
 
-## Getting Started
+## Resources
 
-To get started, clone the repo and run `npm install`.
+This development references this tutorial which is introduced at DoraHack dashboard.
+https://www.youtube.com/watch?v=kNtYYcghzKc
 
-```bash
-git clone https://github.com/taijusanagi/sway-summer-hackathon-2022
-cd sway-summer-hackathon-2022
-npm install
-npm start
+## Memo
+
+### Sign deploy transaction with CLI
+
+```
+forc-wallet sign --account 0 tx-id <tx-id>
 ```

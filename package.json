@@ -14,8 +14,9 @@
     "build:app": "yarn workspace @didfuel/app build",
     "lint": "run-p lint:*",
     "lint:app": "yarn workspace @didfuel/app lint",
-    "run-local-fuel": "fuel-core run --db-type in-memory --chain ./chainConfig.json",
-    "deploy-to-local-fuel": "cd packages/contract && forc deploy --unsigned",
+    "run-fuel-on-local": "fuel-core run --db-type in-memory --chain ./chainConfig.json",
+    "deploy-to-fuel-on-local": "cd packages/contract && forc deploy --unsigned",
+    "deploy-to-fuel-on-testnet": "forc deploy --node-url beta-3.fuel.network/graphql --gas-price 1 --random-salt",
     "typegen-from-contract-to-app": "npx fuels typegen -i ./packages/contract/out/debug/game-abi.json -o ./packages/app/src/types/generated/fuel"
   },
   "devDependencies": {

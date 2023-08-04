@@ -6,8 +6,12 @@ import { useFuel } from "@/hooks/useFuel";
 import { useIsConnected } from "@/hooks/useIsConnected";
 import { Wallet } from "fuels";
 
+import { Modal } from "@/components/Modal";
+import { useModal } from "@/hooks/useModal";
+
 import { GameAbi__factory } from "@/types/generated/fuel";
-const CONTRACT_ID = "0xe0767304c2b083731066c883df00b6253d35365fe298f0b43ae1ea5a34eaa794";
+import { create } from "domain";
+const CONTRACT_ID = "0xa34e734287d51938811d691492e68877de4bbe5e7023eca935e0640bb6cb4426";
 
 interface VerificationMethod {
   id: string;
@@ -26,6 +30,7 @@ const Home: React.FC = () => {
       controller: did,
     },
   ]);
+  const [credentialPayload, setCredentialPayload] = useState("");
   const [newKeyInput, setNewKeyInput] = useState<string>("");
   const [didDocument, setDidDocument] = useState<Record<string, any>>({
     "@context": ["https://www.w3.org/ns/did/v1", "https://w3id.org/security/suites/secp256k1recovery-2020/v2"],
@@ -34,6 +39,8 @@ const Home: React.FC = () => {
     authentication: [`${did}#controller`],
     assertionMethod: [`${did}#controller`],
   });
+
+  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     if (!isConnected) {
@@ -93,27 +100,31 @@ const Home: React.FC = () => {
     }
   };
 
-  async function newPlayer() {
-    const account = await fuel.currentAccount();
-    const wallet = await fuel.getWallet(account);
-    const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
-    let resp = await contract.functions.new_player().txParams({ variableOutputs: 1 }).call();
-    console.log("RESPONSE:", resp.value);
-  }
+  const createCredential = () => {
+    //TODO: implement
+  };
 
-  async function levelUp() {
-    const account = await fuel.currentAccount();
-    const wallet = await fuel.getWallet(account);
-    const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
-    let amount = 100_000_000;
-    let resp = await contract.functions
-      .level_up()
-      .callParams({
-        forward: [amount, CONTRACT_ID],
-      })
-      .call();
-    console.log("RESPONSE:", resp.value.toNumber());
-  }
+  // async function newPlayer() {
+  //   const account = await fuel.currentAccount();
+  //   const wallet = await fuel.getWallet(account);
+  //   const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
+  //   let resp = await contract.functions.new_player().txParams({ variableOutputs: 1 }).call();
+  //   console.log("RESPONSE:", resp.value);
+  // }
+
+  // async function levelUp() {
+  //   const account = await fuel.currentAccount();
+  //   const wallet = await fuel.getWallet(account);
+  //   const contract = GameAbi__factory.connect(CONTRACT_ID, wallet);
+  //   let amount = 100_000_000;
+  //   let resp = await contract.functions
+  //     .level_up()
+  //     .callParams({
+  //       forward: [amount, CONTRACT_ID],
+  //     })
+  //     .call();
+  //   console.log("RESPONSE:", resp.value.toNumber());
+  // }
 
   const handleRevokeKey = (id: string) => {
     const newVerificationMethods = verificationMethods.filter((method) => method.id !== id);
@@ -160,14 +171,36 @@ const Home: React.FC = () => {
                     <pre className="mb-4 border rounded p-4 overflow-x-scroll min-w-full bg-gray-100 shadow-inner text-xs">
                       {JSON.stringify(didDocument, null, 2)}
                     </pre>
-                    <h2 className="mb-2 text-sm font-bold text-black">Management</h2>
+                    <h2 className="mb-2 text-sm font-bold text-black">Create Credential</h2>
+                    <textarea
+                      className="mb-2 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
+                      placeholder="Creadential payload in JSON format"
+                      value={credentialPayload}
+                      onChange={(e) => setCredentialPayload(e.target.value)}
+                    />
+                    <button
+                      className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={openModal}
+                      disabled={!credentialPayload}
+                    >
+                      Create
+                    </button>
+                    <Modal isOpen={isOpen} closeModal={closeModal}>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                        Credential Created
+                      </h3>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-500">Credential goes here</p>
+                      </div>
+                    </Modal>
+                    <h2 className="mb-2 text-sm font-bold text-black">Delegate</h2>
                     <input
                       className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
                       placeholder="Fuel account (bech32Address)"
                       value={newKeyInput}
                       onChange={(e) => setNewKeyInput(e.target.value)}
                     />
-                    <button
+                    {/* <button
                       className="mb-4 px-2 py-2 text-sm rounded-lg min-w-full border border-gray-300"
                       onClick={newPlayer}
                     >
@@ -178,15 +211,15 @@ const Home: React.FC = () => {
                       onClick={levelUp}
                     >
                       levelUp
-                    </button>
+                    </button> */}
                     <button
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={handleAddKey}
                       disabled={!newKeyInput}
                     >
                       Delegate
                     </button>
-                    <ul className="mt-4 min-w-full">
+                    <ul className="min-w-full">
                       {verificationMethods.map(({ id }) => (
                         <li
                           className="flex justify-between items-center p-2 my-2 min-w-full bg-white rounded-lg"
