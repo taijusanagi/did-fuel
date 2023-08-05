@@ -10,7 +10,7 @@ import { Modal } from "@/components/Modal";
 import { useModal } from "@/hooks/useModal";
 
 import { DidAbi__factory } from "@/types/generated/fuel";
-const CONTRACT_ID = "0xb062170a528c103d524bc39cd0c293b87237978e77700dbd5fb3d367bd9754b3";
+const CONTRACT_ID = "0x2acde21bc9b79c6aa6a820244c48ecb14f725b00d621c562659024fccf34a5e6";
 
 interface VerificationMethod {
   id: string;
@@ -40,6 +40,7 @@ const Home: React.FC = () => {
     authentication: [`${did}#controller`],
     assertionMethod: [`${did}#controller`],
   });
+  const [credential, setCredential] = useState<any>();
 
   const { isOpen, openModal, closeModal } = useModal();
 
@@ -128,8 +129,29 @@ const Home: React.FC = () => {
     }
   };
 
-  const createCredential = () => {
-    //TODO: implement
+  const createCredential = async () => {
+    const account = await fuel.currentAccount();
+    const wallet = await fuel.getWallet(account);
+    try {
+      const parsesd = JSON.parse(credentialPayload);
+      const vc = {
+        "@context": ["https://www.w3.org/ns/credentials/v2"],
+        type: ["VerifiableCredential"],
+        issuer: did,
+        credentialSubject: parsesd,
+      };
+      const message = JSON.stringify(vc);
+      const signedMessage = await wallet.signMessage(message);
+      const credential = {
+        ...vc,
+        proof: { type: "CustomSignatureWithFuelWallet", signature: signedMessage, verificationMethod: did },
+      };
+      setCredential(credential);
+      openModal();
+    } catch (e) {
+      alert(e);
+    }
+    // const hashedMessage = hashMessage(message);
   };
 
   const handleRevokeKey = async (did: string) => {
@@ -193,7 +215,7 @@ const Home: React.FC = () => {
                     />
                     <button
                       className="mb-4 px-4 py-2 bg-blue-500 text-white rounded-lg min-w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={openModal}
+                      onClick={createCredential}
                       disabled={!credentialPayload}
                     >
                       Create
@@ -203,7 +225,11 @@ const Home: React.FC = () => {
                         Credential Created
                       </h3>
                       <div className="mt-2">
-                        <p className="text-sm text-gray-500">Credential goes here</p>
+                        {credential && (
+                          <pre className="mb-4 border rounded-lg p-4 overflow-x-scroll min-w-full bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 shadow-2xl text-xs text-white">
+                            {JSON.stringify(credential, null, 2)}
+                          </pre>
+                        )}
                       </div>
                     </Modal>
                     <h2 className="mb-2 text-sm font-bold text-black">Delegate</h2>
