@@ -20,10 +20,12 @@ storage {
 }
 
 impl MyContract for Contract {
+    
     #[storage(read, write)]
     fn add_delegate(delegate: Identity) -> () {
         let sender = msg_sender().unwrap();
         let count = storage.delegate_count.get(sender).unwrap_or(0);
+        require(count <= 10, "delegate limit reached");
         storage.delegates.insert((sender, count), delegate);
         storage.delegate_count.insert(sender, count + 1);
     }
@@ -32,30 +34,25 @@ impl MyContract for Contract {
     fn revoke_delegate(delegate_to_remove: Identity) -> () {
         let sender = msg_sender().unwrap();
         let count = storage.delegate_count.get(sender).unwrap_or(0);
-        if count > 0 {
-            let mut index_to_remove: u64 = count; // init to invalid value
-            let mut i: u64 = 0;
-
-            // Find the delegate to remove
+        require(count > 0, "no delegates to revoke");
+        let mut index_to_remove: u64 = count;
+        let mut i: u64 = 0;
+        while i < count {
+            let delegate = storage.delegates.get((sender, i)).unwrap();
+            if delegate == delegate_to_remove {
+                index_to_remove = i;
+                break;
+            }
+            i = i + 1;
+        }
+        if index_to_remove != count {
+            i = index_to_remove + 1;
             while i < count {
                 let delegate = storage.delegates.get((sender, i)).unwrap();
-                if delegate == delegate_to_remove {
-                    index_to_remove = i;
-                    break;
-                }
+                storage.delegates.insert((sender, i - 1), delegate);
                 i = i + 1;
             }
-
-            // If the delegate was found, shift the remaining delegates
-            if index_to_remove != count {
-                i = index_to_remove + 1;
-                while i < count {
-                    let delegate = storage.delegates.get((sender, i)).unwrap();
-                    storage.delegates.insert((sender, i - 1), delegate);
-                    i = i + 1;
-                }
-                storage.delegate_count.insert(sender, count - 1);
-            }
+            storage.delegate_count.insert(sender, count - 1);
         }
     }
 
@@ -66,7 +63,7 @@ impl MyContract for Contract {
         let defaultIdentity = Identity::Address(defaultAddress);
         let mut delegates: [Identity; 10] = [defaultIdentity; 10];
         let mut i: u64 = 0;
-        while i < count && i < 10 {
+        while i < count {
             let delegate_identity = storage.delegates.get((identity, i)).unwrap();
             delegates[i] = delegate_identity;
             i = i + 1;
