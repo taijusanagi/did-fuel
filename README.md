@@ -26,3 +26,7 @@ https://www.youtube.com/watch?v=kNtYYcghzKc
 ```
 forc-wallet sign --account 0 tx-id <tx-id>
 ```
+
+### Fuel ts does not support the Vec return
+
+https://github.com/FuelLabs/fuels-ts/issues/933

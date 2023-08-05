@@ -9,9 +9,8 @@ import { Wallet } from "fuels";
 import { Modal } from "@/components/Modal";
 import { useModal } from "@/hooks/useModal";
 
-import { GameAbi__factory } from "@/types/generated/fuel";
-import { create } from "domain";
-const CONTRACT_ID = "0xa34e734287d51938811d691492e68877de4bbe5e7023eca935e0640bb6cb4426";
+import { DidAbi__factory } from "@/types/generated/fuel";
+const CONTRACT_ID = "0xb062170a528c103d524bc39cd0c293b87237978e77700dbd5fb3d367bd9754b3";
 
 interface VerificationMethod {
   id: string;
@@ -57,6 +56,15 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     // TODO: add registered keys
+    const process = async () => {
+      const account = await fuel.currentAccount();
+      const wallet = await fuel.getWallet(account);
+      const contract = DidAbi__factory.connect(CONTRACT_ID, wallet);
+      const resp = await contract.functions.get_delegates({ Address: { value: wallet.address as any } }).get();
+      console.log(resp);
+    };
+
+    process();
 
     setVerificationMethods([
       {
@@ -77,22 +85,33 @@ const Home: React.FC = () => {
     });
   }, [did, verificationMethods]);
 
-  const handleAddKey = () => {
+  const handleAddKey = async () => {
     // TODO: send transaction
 
     try {
-      const wallet = Wallet.fromAddress(newKeyInput);
-      const newAddress = wallet.address.toString();
+      const newWallet = Wallet.fromAddress(newKeyInput);
+      const newAddress = newWallet.address.toString();
       const newDID = `did:fuel:${newAddress}`;
       if (verificationMethods.some((method) => method.id === newDID)) {
         alert("This address is already registered.");
         return;
       }
+
+      const account = await fuel.currentAccount();
+      const wallet = await fuel.getWallet(account);
+      const contract = DidAbi__factory.connect(CONTRACT_ID, wallet);
+      let resp = await contract.functions
+        .add_delegate({ Address: { value: newWallet.address as any } })
+        .txParams({ variableOutputs: 1 })
+        .call();
+      console.log("RESPONSE:", resp.value);
+
       const newKey: VerificationMethod = {
         id: `did:fuel:${newKeyInput}`,
         type: "EcdsaSecp256k1RecoveryMethod2020",
         controller: did,
       };
+
       setVerificationMethods([...verificationMethods, newKey]);
       setNewKeyInput("");
     } catch (e) {
