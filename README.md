@@ -4,11 +4,9 @@
 
 DID:Fuel is a product created for the Sway Summer Hackathon. Our goal is to establish an identity infrastructure for Fuel, offering an SDK that makes it easy to create and manage Decentralized Identifiers (DIDs) on Fuel, and includes a simple frontend demo showcasing the SDK functionality.
 
-## Demo
-
 ## Live App
 
-TBD
+https://did-fuel.vercel.app/
 
 ## Video
 
