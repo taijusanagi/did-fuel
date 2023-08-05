@@ -48,3 +48,16 @@ https://www.youtube.com/watch?v=kNtYYcghzKc
 - Fuel ts does not support getting the event log of contract yet so we use get function instead
 - Sway does not support array in storage map yet, so we use map to store index and count
 - Fuel ts does not support returning Vec yet, so we use fixed array in contract
+
+## Deployment
+
+Contract is deployed on beta-test 3 test network
+
+```
+Bytecode size: 6060 bytes
+Contract id: 0x2acde21bc9b79c6aa6a820244c48ecb14f725b00d621c562659024fccf34a5e6
+Please provide the address of the wallet you are going to sign this transaction with:fuel1jkarlnz276urhqjtswttssl48dhx8yzes56kgnw405lsdga24nhqj7yv35
+Transaction id to sign: 3fb55541f439e261dbafdfc496c0fe0d7009a21ca5bfd98ffbc835dd257ef15a
+Please provide the signature:dfe23f28bc0815330a0c9ebd87be10e2fcb94d1831f44de179ade4555c041aca1ec3a9139b9b70886a2d1424865a008c69e63d4306b54920bd4b54f73fdd9cea
+contract 2acde21bc9b79c6aa6a820244c48ecb14f725b00d621c562659024fccf34a5e6 deployed in block 0xe7849039db812030f84d02b2847942c9d5007c3b35207312e9a9537f7beb9d5f
+```
